@@ -1,0 +1,35 @@
+---
+
+- hosts: all
+  gather_facts: false
+  become: yes
+
+  tasks:
+    - name: Update all packages
+      yum: name=* state=latest
+
+    - name: Ensure common packages are installed
+      yum: name={{item}} state=latest
+      with_items:
+        - epel-release
+        - docker
+        - git
+        - python-pip
+
+    - name: Start docker daemon
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add ec2-user to docker group
+      user:
+        name: ec2-user
+        groups: docker
+        append: yes
+
+    - name: Ensure docker-compose is instaled
+      pip: name={{item}} state=latest
+      with_items:
+        - docker-compose
+        - backports.ssl_match_hostname
